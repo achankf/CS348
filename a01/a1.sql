@@ -9,3 +9,13 @@ where s.snum = e.snum \
 	and s.year = 4
 
 -- Q2
+select p.pnum, p.pname \
+from professor p \
+where p.dept = 'Computer Science' \
+	and p.pnum not in ( \
+		select pnum \
+		from class \
+		where cnum = 'CS348' or cnum = 'CS234' \
+	)
+
+-- Q3
