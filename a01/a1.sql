@@ -58,3 +58,24 @@ select distinct p.pnum, p.pname, p.office, p.dept \
 from professor p, class c, teaching t \
 where p.pnum = c.pnum \
 	and c.cnum = t.cnum and c.term = t.term and c.section = t.section
+
+-- Q6
+with minmark(snum, grade) as ( \
+	select m.snum, min(m.grade) \
+	from mark m, student s \
+	where m.snum = s.snum \
+		and s.year = 4 \
+		and m.cnum like '%3__' \
+	group by m.snum \
+), \
+	numerator(num) as ( \
+		select sum(flag) \
+		from (select case when grade >= 80 then 1 end as flag from minmark) \
+), \
+	denominator(num) as ( \
+		select count(*) \
+		from student \
+		where year = 4 \
+) \
+select 100.0 * n.num / d.num as percentage \
+from numerator n, denominator d
