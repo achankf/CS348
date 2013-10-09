@@ -20,7 +20,7 @@ where p.dept = 'Computer Science' \
 	)
 
 -- Q3
-with
+with \
 	maxmark(cnum, term, section, grade) as ( \
 		select m.cnum, m.term, m.section, max(m.grade) \
 		from mark m \
@@ -36,7 +36,7 @@ where m.snum = s.snum \
 	and s.sname = 'Fred Smith' 
 
 -- Q4
-with
+with \
 	min_cs_co_mark(snum, grade) as ( \
 		select m.snum, min(m.grade) \
 		from mark m \
@@ -50,7 +50,7 @@ where s.snum = m.snum \
 	and m.grade >= 90
 
 -- Q5
-with
+with \
 	teaching(cnum, term, section) as ( \
 		select cnum, term, section \
 		from schedule sc \
@@ -63,7 +63,7 @@ where p.pnum = c.pnum \
 	and c.cnum = t.cnum and c.term = t.term and c.section = t.section
 
 -- Q6
-with
+with \
 	minmark(snum, grade) as ( \
 		select m.snum, min(m.grade) \
 		from mark m, student s \
@@ -85,7 +85,7 @@ select 100.0 * n.num / d.num as percentage \
 from numerator n, denominator d
 
 -- Q7
-with
+with \
 	statistics(cnum, num_enrolled) as ( \
 		select e.cnum, count(*) as num_enrolled \
 		from enrollment e \
@@ -102,3 +102,29 @@ from statistics s, min3 m \
 where s.num_enrolled = m.num_enrolled
 
 -- Q8
+with  \
+	current_class(cnum, term, section) as ( \
+		select cnum, term, section \
+		from class c \
+		except \
+		select cnum, term, section \
+		from mark \
+), \
+	class_statistics(cnum, term, section, count) as ( \
+		select e.cnum, e.term, e.section, count(*) \
+		from enrollment e \
+		inner join current_class c \
+			on e.cnum = c.cnum and e.term = c.term and e.section = c.section \
+		inner join student s \
+			on e.snum = s.snum \
+		where s.year = 1 or s.year = 2 \
+		group by e.cnum, e.term, e.section \
+) \
+select p.pnum, p.pname, c.cnum, c.term, c.section, s.count \
+from class c \
+inner join class_statistics s \
+	on c.cnum = s.cnum and c.term = s.term and c.section = s.section \
+inner join professor p \
+	on p.pnum = c.pnum \
+where p.dept = 'CS' or p.dept = 'Computer Science' -- just in case \
+order by p.pname, p.pnum, c.term, c.section
