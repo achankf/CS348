@@ -111,7 +111,7 @@ with  \
 		except \
 		select cnum, term, section \
 		from mark \
-), \
+	), \
 	class_statistics(cnum, term, section, count) as ( \
 		select e.cnum, e.term, e.section, count(*) \
 		from enrollment e \
@@ -121,7 +121,7 @@ with  \
 			on e.snum = s.snum \
 		where s.year = 1 or s.year = 2 \
 		group by e.cnum, e.term, e.section \
-) \
+	) \
 select p.pnum, p.pname, c.cnum, c.term, c.section, s.count \
 from class c \
 inner join class_statistics s \
