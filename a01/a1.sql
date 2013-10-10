@@ -60,7 +60,8 @@ with \
 select distinct p.pnum, p.pname, p.office, p.dept \
 from professor p, class c, teaching t \
 where p.pnum = c.pnum \
-	and c.cnum = t.cnum and c.term = t.term and c.section = t.section
+	and c.cnum = t.cnum and c.term = t.term and c.section = t.section \
+order by p.dept, p.pname
 
 -- Q6
 with \
@@ -73,8 +74,9 @@ with \
 		group by m.snum \
 	), \
 	numerator(num) as ( \
-		select sum(flag) \
-		from (select case when grade >= 80 then 1 end as flag from minmark) \
+		select count(*) \
+		from minmark \
+		where grade >= 80 \
 	), \
 	denominator(num) as ( \
 		select count(*) \
@@ -128,3 +130,50 @@ inner join professor p \
 	on p.pnum = c.pnum \
 where p.dept = 'CS' or p.dept = 'Computer Science' -- just in case \
 order by p.pname, p.pnum, c.term, c.section
+
+-- Q9
+with \
+	max_grades(cnum, term, section, grade) as ( \
+		select cnum, term, section, max(grade) \
+		from mark \
+		group by cnum, term, section \
+	) \
+select c1.cnum, c1.term, c1.pnum, p1.pname, c1.section, mg1.grade, c2.pnum, p2.pname, c2.section, mg2.grade, p2.dept \
+from class c1 \
+inner join class c2 \
+	on c1.cnum = c2.cnum  and c1.term = c2.term and c1.section <> c2.section \
+inner join max_grades mg1 \
+	on c1.cnum = mg1.cnum and c1.term = mg1.term and c1.section = mg1.section \
+inner join max_grades mg2 \
+	on c2.cnum = mg2.cnum and c2.term = mg2.term and c2.section = mg2.section \
+inner join professor p1 \
+	on c1.pnum = p1.pnum \
+inner join professor p2 \
+	on c2.pnum = p2.pnum \
+where (p1.dept = 'Computer Science' or p1.dept = 'CS') \
+	and (p2.dept <> 'Computer Science' and p2.dept <> 'CS') -- note the use of "and" - the subtleties in logic 
+
+-- Q10
+with \
+	num_dept(num) as ( \
+		select count(distinct dept) from professor \
+	), \
+	prof_per_dept(dept, num) as ( \
+		select dept, count(*) \
+		from professor \
+		group by dept \
+	), \
+	shared_per_dept(dept, num) as ( \
+		select p1.dept, count(distinct p1.pnum) \
+		from professor p1, professor p2 \
+		where p1.pnum <> p2.pnum and p1.office = p2.office \
+		group by p1.dept \
+	), \
+	shared_majority(num) as ( \
+		select count(*) \
+		from prof_per_dept ppd, shared_per_dept spd \
+		where ppd.dept = spd.dept \
+			and spd.num > ppd.num / 2 \
+	) \
+select 100.0 * numerator.num / denominator.num as percentage \
+from shared_majority numerator, num_dept denominator
