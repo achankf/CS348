@@ -22,9 +22,9 @@ where p.dept = 'Computer Science' \
 -- Q3
 with \
 	maxmark(cnum, term, section, grade) as ( \
-		select m.cnum, m.term, m.section, max(m.grade) \
-		from mark m \
-		group by m.cnum, m.term, m.section \
+		select cnum, term, section, max(grade) \
+		from mark \
+		group by cnum, term, section \
 	) \
 select p.pnum, p.pname, m.cnum, m.term, m.section, m.grade \
 from mark m, class c, student s, maxmark m2, professor p \
@@ -138,7 +138,7 @@ with \
 		from mark \
 		group by cnum, term, section \
 	) \
-select c1.cnum, c1.term, c1.pnum, p1.pname, c1.section, mg1.grade, c2.pnum, p2.pname, c2.section, mg2.grade, p2.dept \
+select c1.cnum, course.cname, c1.term, c1.pnum, p1.pname, c1.section, mg1.grade, c2.pnum, p2.pname, c2.section, mg2.grade, p2.dept \
 from class c1 \
 inner join class c2 \
 	on c1.cnum = c2.cnum  and c1.term = c2.term and c1.section <> c2.section \
@@ -150,6 +150,8 @@ inner join professor p1 \
 	on c1.pnum = p1.pnum \
 inner join professor p2 \
 	on c2.pnum = p2.pnum \
+inner join course \
+	on c1.cnum = course.cnum \
 where (p1.dept = 'Computer Science' or p1.dept = 'CS') \
 	and (p2.dept <> 'Computer Science' and p2.dept <> 'CS') -- note the use of "and" - the subtleties in logic 
 
