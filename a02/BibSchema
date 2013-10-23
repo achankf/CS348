@@ -11,9 +11,9 @@ create table author ( \
     url         char(42), \
     primary key (aid) )
 
-insert into author (aid, name) values (1, 'Peter Bumbulis')
-insert into author (aid, name, url) \
-values (2, 'Ivan T. Bowman', 'http://db.uwaterloo.ca/~itbowman')
+--insert into author (aid, name) values (1, 'Peter Bumbulis')
+--insert into author (aid, name, url) \
+--values (2, 'Ivan T. Bowman', 'http://db.uwaterloo.ca/~itbowman')
 
 drop table publication
 create table publication ( \
@@ -21,10 +21,10 @@ create table publication ( \
     title       char(70) not null, \
     primary key (pubid) )
 
-insert into publication (pubid, title) \
-values ('SIGMOD02', 'Proc. ACM SIGMOD Conference on Management of Data')
-insert into publication (pubid, title) \
-values ('BB02', 'A Compact B-Tree')
+--insert into publication (pubid, title) \
+--values ('SIGMOD02', 'Proc. ACM SIGMOD Conference on Management of Data')
+--insert into publication (pubid, title) \
+--values ('BB02', 'A Compact B-Tree')
 
 drop table wrote
 create table wrote ( \
@@ -35,8 +35,8 @@ create table wrote ( \
     foreign key (aid) references author (aid), \
     foreign key (pubid) references publication (pubid) )
 
-insert into wrote (aid, pubid) values (1, 'BB02', 1)
-insert into wrote (aid, pubid) values (2, 'BB02', 2)
+--insert into wrote (aid, pubid) values (1, 'BB02', 1)
+--insert into wrote (aid, pubid) values (2, 'BB02', 2)
 
 drop table proceedings
 create table proceedings ( \
@@ -45,7 +45,7 @@ create table proceedings ( \
     primary key (pubid), \
     foreign key (pubid) references publication (pubid) )
 
-insert into proceedings (pubid, year) values ('SIGMOD02', 2002)
+--insert into proceedings (pubid, year) values ('SIGMOD02', 2002)
 
 drop table journal
 create table journal ( \
@@ -74,7 +74,7 @@ create table article ( \
     foreign key (pubid) references publication (pubid), \
     foreign key (appearsin) references publication (pubid) )
 
-insert into article (pubid, appearsin, startpage, endpage) \
-values ('BB02', 'SIGMOD02', 533, 541)
+--insert into article (pubid, appearsin, startpage, endpage) \
+--values ('BB02', 'SIGMOD02', 533, 541)
 
 commit work

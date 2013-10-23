@@ -1,0 +1,6 @@
+#!/bin/bash
+
+db2 -f BibSchema > create.log &
+./test/gen.pl > temp &
+wait
+db2 -f temp >> create.log
