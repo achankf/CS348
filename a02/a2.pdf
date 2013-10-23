@@ -1,0 +1,9 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>301 Moved Permanently</title>
+</head><body>
+<h1>Moved Permanently</h1>
+<p>The document has moved <a href="http://cs.uwaterloo.ca/~gweddell/cs348/a2.pdf">here</a>.</p>
+<hr>
+<address>Apache/2.2.22 (Ubuntu) mod_fastcgi/mod_fastcgi-SNAP-0910052141 mod_jk/1.2.32 proxy_html/3.0.1 mod_ssl/2.2.22 OpenSSL/1.0.1 Server at db.uwaterloo.ca Port 80</address>
+</body></html>
