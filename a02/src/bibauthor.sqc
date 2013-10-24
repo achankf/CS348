@@ -1,4 +1,90 @@
 #include <stdio.h>
+#include <stdbool.h>
+#include <assert.h>
+#include <string.h>
+#include "util.h"
 
-int main(){
+EXEC SQL INCLUDE SQLCA; 
+
+int print_pub_by_id(char *pubid){
+	int ret = 0;
+	printf("Doing something with %s", pubid);
+	return ret;
+}
+
+int print_pubid(char *author_name){
+	int ret = 0;
+	EXEC SQL BEGIN DECLARE SECTION;
+		char pubid[11];
+		char aname[23];
+	EXEC SQL END DECLARE SECTION;
+
+	strcpy(aname,author_name); // assume no overflow
+
+	EXEC SQL DECLARE C1 CURSOR FOR
+		with  
+			getyears_by_author(pubid,year) as ( 
+				select p.pubid, 
+					case 
+						when b.year is not null then b.year 
+						when j.year is not null then j.year 
+						when pro.year is not null then pro.year 
+					end as year 
+				from publication p 
+				inner join wrote w on p.pubid = w.pubid 
+				inner join author a on w.aid = a.aid 
+				left join book b on p.pubid = b.pubid 
+				left join journal j on p.pubid = j.pubid 
+				left join proceedings pro on p.pubid = pro.pubid 
+				where a.name = :aname
+		) 
+		select p.pubid 
+		from publication p, wrote w, author a, getyears_by_author gba 
+		where p.pubid = w.pubid 
+			and w.aid = a.aid 
+			and p.pubid = gba.pubid 
+			and w.aorder = 1 
+		order by a.name, gba.year;
+	EXEC SQL OPEN C1;
+
+	while(true){
+		EXEC SQL FETCH C1 INTO :pubid;
+		if (SQLCODE == 100){ // the end
+		} else if (SQLCODE < 0) { // exception
+			ret = -1;
+		} else { // normal
+			printf("%s\n", pubid);
+			continue;
+		}
+		break;
+	}
+
+	EXEC SQL CLOSE C1;
+	return ret;
+}
+
+int main(int argc, char *argv[]) {
+	int ret = 0;
+
+	assert(argc == 2); // program name and the target author's name
+
+	EXEC SQL BEGIN DECLARE SECTION;
+		char db[6] = "CS348";
+	EXEC SQL END DECLARE SECTION;
+	EXEC SQL WHENEVER SQLERROR  GO TO error;
+	EXEC SQL CONNECT TO :db;
+
+	print_pubid(argv[1]);
+
+	EXEC SQL COMMIT;
+	EXEC SQL CONNECT reset;
+
+	return ret;
+error:
+	check_error("Error",&sqlca);
+	EXEC SQL WHENEVER SQLERROR CONTINUE;
+
+	EXEC SQL ROLLBACK;
+	EXEC SQL CONNECT reset;
+	return 1;
 }

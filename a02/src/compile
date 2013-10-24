@@ -20,12 +20,12 @@ rm -f "$UTILFILE" "$UTILFILE".o "$UTILFILE".bnd
 
 db2 connect to "$DATABASE"
 db2 prep "$BIBAUTHOR".sqc bindfile
-db2 prep "$BIBMAINT".sqc bindfile
+#db2 prep "$BIBMAINT".sqc bindfile
 db2 bind "$BIBAUTHOR".bnd
-db2 bind "$BIBMAINT".bnd
+#db2 bind "$BIBMAINT".bnd
 db2 connect reset
 "$CC" "$CFLAGS" -c "$UTILFILE".c
 "$CC" "$CFLAGS" -c "$BIBAUTHOR".c
-"$CC" "$CFLAGS" -c "$BIBMAINT".c
+#"$CC" "$CFLAGS" -c "$BIBMAINT".c
 "$CC" "$CFLAGS" -o "$BIBAUTHOR" "$BIBAUTHOR".o "$UTILFILE".o $LIBS
-"$CC" "$CFLAGS" -o "$BIBMAINT" "$BIBMAINT".o "$UTILFILE".o $LIBS
+#"$CC" "$CFLAGS" -o "$BIBMAINT" "$BIBMAINT".o "$UTILFILE".o $LIBS
