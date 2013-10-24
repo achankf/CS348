@@ -20,9 +20,9 @@ sub gen_pub{
 sub gen_wrote{
 	my $mod = 0;
 	for (my $i = 0; $i < $num_pub; $i++){
-		my $num_co = int(rand($num_author / 2));
+		my $num_co = int(rand($num_author / 2)) + 1;
 		my $cur_co = $mod;
-		for (my $j = 0; $j < $num_co; $j++){
+		for (my $j = 1; $j <= $num_co; $j++){
 			print "insert into wrote values ($cur_co, '$i', $j)\n";
 			$cur_co = ($cur_co + 2) % $num_author;
 		}
