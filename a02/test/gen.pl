@@ -32,7 +32,9 @@ sub gen_wrote{
 
 sub gen_subs{
 	my $mod = 0;
-	for (my $i = 0; $i < $num_pub;){
+	my $num_non_article = $num_pub / 4 * 3;
+	my $num_article = $num_pub - $num_non_article;
+	for (my $i = 0; $i < $num_non_article;){
 		my $year = int(rand(10)) + 2000;
 		print "insert into proceedings values ('$i', $year)\n";
 		$i++;
@@ -44,13 +46,15 @@ sub gen_subs{
 		$year = int(rand(10)) + 2000;
 		print "insert into book values ('$i', 'Publisher_$i', $year)\n";
 		$i++;
-		$year = int(rand(10)) + 2000;
-		my $appearin = ($i + rand($num_pub)) % $num_pub;
-		$appearin = $appearin % 3 == 0 ? ($appearin + 1) % $num_pub : $appearin;
+	}
+
+	my $cur = $num_non_article;
+	for (my $i = 0; $i < $num_article; $i++){
+		my $appearin = int(rand($num_non_article));
 		my $startpage = int(rand(1000));
 		my $endpage = int(rand(1000)) + $startpage;
-		print "insert into article values ('$i','$appearin', $startpage, $endpage)\n";
-		$i++;
+		print "insert into article values ('$cur','$appearin', $startpage, $endpage)\n";
+		$cur++;
 	}
 }
 
@@ -59,5 +63,7 @@ gen_author;
 gen_pub;
 gen_wrote;
 gen_subs;
+print "delete wrote where pubid in (select pubid from proceedings)";
+print "delete wrote where pubid in (select pubid from journal)";
 print "commit work\n";
 print "connect reset\n";
