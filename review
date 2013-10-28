@@ -1,0 +1,19 @@
+Chapter 1
+data model - high-level description constructs that hide low-level storage details
+relational model - set of records
+
+conceptual schema - description of the data model in terms of the DBMS
+external schema - allow data access to be customized at the level of individual or group of users.
+physical schema - specifies storage details (indices, sorted records, etc.)
+
+logical data independence - the ability to change the conceptual schema without affecting the existing external schema
+physical data independence - the ability to change physical schema without affecting the logical schema
+
+transaction - a unit of work that treats many operations as one atomic operation
+
+user guarantees data consistency
+database guarantees atomicity
+
+Chapter 2
+entity - unique object
+attributes - description of entity
