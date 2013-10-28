@@ -17,3 +17,13 @@ database guarantees atomicity
 Chapter 2
 entity - unique object
 attributes - description of entity
+
+Chapter 3
+relation - the main construct of representing data in the relational model; consist of a schema (column of the table, definition of a tuple) and an instance (table).
+arity - or degree; the number of fields
+domain constrains - the type of each field in a tuple
+integrity constrains - conditions in the database schema that restricts the data that can be stored a table.
+
+Chapter 4
+Union-compatible - same domain and same number of fields
+relational completeness - a language that can do first-order logic
