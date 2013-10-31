@@ -9,7 +9,7 @@ DB2HOME=`eval echo ~"$DB2INSTANCE"`
 DB2PATH="$DB2HOME"/sqllib
 
 CC=gcc
-CFLAGS=-I$DB2PATH/include
+CFLAGS="-I$DB2PATH/include"
 LIBS="-L$DB2PATH/lib -ldb2"
 
 set -x

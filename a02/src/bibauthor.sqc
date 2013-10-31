@@ -6,66 +6,186 @@
 
 EXEC SQL INCLUDE SQLCA; 
 
-int print_pub_by_id(char *pubid){
-	int ret = 0;
-	printf("Doing something with %s", pubid);
-	return ret;
+EXEC SQL BEGIN DECLARE SECTION;
+	char title[71];
+	char type[12];
+	char pubid[11];
+	char aname[23];
+	char input_aname[23];
+	char publisher[51];
+	sqlint32 year;
+	sqlint32 volume;
+	sqlint32 number;
+	char appearsin[11];
+	sqlint32 startpage;
+	sqlint32 endpage;
+EXEC SQL END DECLARE SECTION;
+
+inline void print_book_details(){
+	EXEC SQL
+		select publisher, year INTO :publisher, :year
+		from book
+		where pubid = :pubid;
+	printf("Publisher: %s\n", publisher);
+	printf("Year: %d\n", year);
 }
 
-int print_pubid(char *author_name){
-	int ret = 0;
-	EXEC SQL BEGIN DECLARE SECTION;
-		char pubid[11];
-		char aname[23];
-	EXEC SQL END DECLARE SECTION;
+inline void print_journal_details(){
+	EXEC SQL
+		select volume, number, year INTO :volume, :number, :year
+		from journal
+		where pubid = :pubid;
+	printf("Volume: %d\n", volume);
+	printf("Number: %d\n", number);
+	printf("Year: %d\n", year);
+}
 
-	strcpy(aname,author_name); // assume no overflow
+inline void print_proceedings_details(){
+	EXEC SQL
+		select year INTO :year
+		from proceedings
+		where pubid = :pubid;
+	printf("Year: %d\n", year);
+}
 
+inline void print_article_details(){
+	EXEC SQL
+		select appearsin, startpage, endpage INTO :appearsin, :startpage, :endpage
+		from article
+		where pubid = :pubid;
+	printf("In: %s\n", appearsin);
+	printf("Pages: %d-%d\n", startpage, endpage);
+}
+
+inline void print_authors(){
+	EXEC SQL DECLARE C2 CURSOR FOR
+		select trim(coalesce(a.name,'')) as name
+		from wrote w, author a
+		where w.aid = a.aid
+			and w.pubid = :pubid
+		order by w.aorder;
+	EXEC SQL OPEN C2;
+
+	printf("Authors:");
+	EXEC SQL FETCH C2 INTO :aname;
+	while(SQLCODE != 100){
+		printf(" %s", aname);
+		EXEC SQL FETCH C2 INTO :aname;
+		if (SQLCODE == 100) break;
+		printf(",");
+	}
+	puts("");
+
+	EXEC SQL CLOSE C2;
+}
+
+void print_pub_by_id(char *pubid_){
+	char temp_pubid[11];
+	strcpy(temp_pubid, pubid_); // for printing authors
+	strcpy(pubid, pubid_);
+	printf("Pubid: %s\n", pubid);
+
+	EXEC SQL
+		select distinct p.title,
+			case 
+				when b.year is not null then 'book' 
+				when j.year is not null then 'journal' 
+				when pro.year is not null then 'proceedings' 
+				else 'article'
+			end as pub_type INTO :title, :type
+		from publication p 
+			left join wrote wr on p.pubid = wr.pubid 
+			left join author a on wr.aid = a.aid 
+			left join book b on p.pubid = b.pubid 
+			left join journal j on p.pubid = j.pubid 
+			left join proceedings pro on p.pubid = pro.pubid 
+		where p.pubid = :pubid;
+
+	printf("Type: %s\n", type);
+	print_authors(temp_pubid);
+	printf("Title: %s\n", title);
+
+	switch (type[0]){
+		case 'b' : print_book_details(); break;
+		case 'j' : print_journal_details(); break;
+		case 'p' : print_proceedings_details(); break;
+		case 'a' : print_article_details(); break;
+	}
+	puts("");
+}
+
+void print_pubid(){
 	EXEC SQL DECLARE C1 CURSOR FOR
 		with  
 			getyears_by_author(pubid,year) as ( 
-				select p.pubid, 
+				select p.pubid, b.year 
+				from publication p 
+				inner join wrote w on p.pubid = w.pubid 
+				inner join author a on w.aid = a.aid 
+				inner join book b on p.pubid = b.pubid 
+				where a.name = :input_aname
+		), 
+			getarticles_appearsin(pubid,year) as ( 
+				select art.appearsin,
+					case 
+						when b.year is not null then b.year
+						when j.year is not null then j.year
+						when pro.year is not null then pro.year
+					end as year
+				from article art 
+					inner join wrote wr on art.pubid = wr.pubid 
+					inner join author a on wr.aid = a.aid 
+					left join book b on art.appearsin = b.pubid 
+					left join journal j on art.appearsin = j.pubid 
+					left join proceedings pro on art.appearsin = pro.pubid 
+				where a.name = :input_aname
+		), 
+			getarticles(pubid,year) as ( 
+				select art.pubid, 
 					case 
 						when b.year is not null then b.year 
 						when j.year is not null then j.year 
 						when pro.year is not null then pro.year 
 					end as year 
-				from publication p 
-				inner join wrote w on p.pubid = w.pubid 
-				inner join author a on w.aid = a.aid 
-				left join book b on p.pubid = b.pubid 
-				left join journal j on p.pubid = j.pubid 
-				left join proceedings pro on p.pubid = pro.pubid 
-				where a.name = :aname
+				from article art 
+					inner join wrote wr on art.pubid = wr.pubid 
+					inner join author a on wr.aid = a.aid 
+					left join book b on art.appearsin = b.pubid 
+					left join journal j on art.appearsin = j.pubid 
+					left join proceedings pro on art.appearsin = pro.pubid 
+				where a.name = :input_aname
 		) 
-		select p.pubid 
-		from publication p, wrote w, author a, getyears_by_author gba 
-		where p.pubid = w.pubid 
+		select gba.pubid, a.name, gba.year 
+		from getyears_by_author gba, wrote w, author a 
+		where gba.pubid = w.pubid 
 			and w.aid = a.aid 
-			and p.pubid = gba.pubid 
 			and w.aorder = 1 
-		order by a.name, gba.year;
+			and gba.year is not null 
+		union 
+		select ga.pubid, a.name, ga.year
+			from getarticles_appearsin ga
+			left join wrote w on ga.pubid = w.pubid
+			left join author a on w.aid = a.aid
+			where w.aorder is null or w.aorder = 1
+		union 
+		select ga.pubid, a.name, ga.year 
+		from getarticles ga 
+		left join wrote w on ga.pubid = w.pubid 
+		left join author a on w.aid = a.aid 
+		where w.aorder is null or w.aorder = 1 
+		order by name, year;
 	EXEC SQL OPEN C1;
 
 	while(true){
 		EXEC SQL FETCH C1 INTO :pubid;
-		if (SQLCODE == 100){ // the end
-		} else if (SQLCODE < 0) { // exception
-			ret = -1;
-		} else { // normal
-			printf("%s\n", pubid);
-			continue;
-		}
-		break;
+		if (SQLCODE == 100) break;
+		print_pub_by_id(pubid);
 	}
 
 	EXEC SQL CLOSE C1;
-	return ret;
 }
 
 int main(int argc, char *argv[]) {
-	int ret = 0;
-
 	assert(argc == 2); // program name and the target author's name
 
 	EXEC SQL BEGIN DECLARE SECTION;
@@ -74,12 +194,13 @@ int main(int argc, char *argv[]) {
 	EXEC SQL WHENEVER SQLERROR  GO TO error;
 	EXEC SQL CONNECT TO :db;
 
-	print_pubid(argv[1]);
+	strcpy(input_aname, argv[1]);
+	print_pubid();
 
 	EXEC SQL COMMIT;
 	EXEC SQL CONNECT reset;
 
-	return ret;
+	return 0;
 error:
 	check_error("Error",&sqlca);
 	EXEC SQL WHENEVER SQLERROR CONTINUE;
