@@ -1,32 +1,224 @@
-#include <stdio.h>
-#include "util.h"
+#include<stdio.h>
+#include<stdlib.h>
+#include<stdbool.h>
+#include<string.h>
+
+#define BUF_SIZE 4096
 
 EXEC SQL INCLUDE SQLCA; 
 
-int main(int argc, char *argv[]) {
-   char * getpass();
+EXEC SQL BEGIN DECLARE SECTION;
+sqlint32 aid;
+char name[23];
+char url[43];
+char pubid[11];
+sqlint32 aorder;
+char title[71];
+char publisher[51];
+sqlint32 year;
+sqlint32 volume;
+sqlint32 number;
+char appearsin[11];
+sqlint32 startpage;
+sqlint32 endpage;
 
-   EXEC SQL BEGIN DECLARE SECTION;
-      char db[6] = "cs348";
-   EXEC SQL END DECLARE SECTION;
+sqlint32 test;
+const char db[6] = "CS348";
+EXEC SQL END DECLARE SECTION;
 
-   printf("Sample C program: CONNECT\n" );
+void delete_publication_details(){
+	printf("\tDELETING %s on proceedings\n", pubid);
+	EXEC SQL delete from proceedings
+		where pubid in (
+			select pubid from publication
+			where pubid = :pubid
+		);
 
-   EXEC SQL WHENEVER SQLERROR  GO TO error;
+	printf("\tDELETING %s on journal\n", pubid);
+	EXEC SQL delete from journal
+		where pubid in (
+			select pubid from publication
+			where pubid = :pubid
+		);
 
-   EXEC SQL CONNECT TO :db;
+	printf("\tDELETING %s on book\n", pubid);
+	EXEC SQL delete from book
+		where pubid in (
+			select pubid from publication
+			where pubid = :pubid
+		);
 
-   printf("Connected to DB2: a test application for %s\n", db);
+	printf("\tDELETING %s on article\n", pubid);
+	EXEC SQL delete from article
+		where pubid in (
+			select pubid from publication
+			where pubid = :pubid
+		);
+}
 
-   EXEC SQL COMMIT;
-   EXEC SQL CONNECT reset;
-   exit(0);
+void delete_wrote(){
+	printf("\tDELETING wrote for pubid %s\n", pubid); 
+	EXEC SQL delete from wrote
+		where pubid in (
+			select pubid from publication
+			where pubid = :pubid
+		);
+}
 
+void process_publication(){
+	char *temp;
+	temp = strtok(NULL,"#");
+	strcpy(pubid, temp);
+	temp = strtok(NULL,"#");
+	strcpy(title, temp);
+
+	delete_wrote();
+	delete_publication_details();
+
+	EXEC SQL
+		select count(*) INTO :test from publication where pubid = :pubid;
+
+	if (test > 0){
+		printf("UPDATING");
+		EXEC SQL update publication set title = :title where pubid = :pubid;
+	} else {
+		printf("INSERTING");
+		EXEC SQL insert into publication values (:pubid, :title);
+	}
+	printf(" publication(%s#%s)\n", pubid, title);
+}
+
+void process_authorwrote(char *authors){
+	char *temp = authors;
+
+	printf("\tDELETING wrote for pubid %s\n", pubid); 
+
+	for(aorder = 1; (temp = strtok(temp,";")) ; aorder++){
+		aid = atoi(temp);
+
+		printf("\tINSERTING author %d wrote %s (order: %d)\n",
+			aid, pubid, aorder);
+		EXEC SQL insert into wrote (aid,pubid,aorder)
+			values (:aid, :pubid, :aorder);
+
+		temp = NULL;
+	}
+}
+
+void process_author(){
+	char *temp;
+	aid = atoi(strtok(NULL,"#"));
+	temp = strtok(NULL,")");
+	strcpy(name, temp);
+
+	EXEC SQL
+		select count(*) INTO :test from author where aid = :aid;
+
+	if (test > 0){
+		printf("UPDATING");
+		EXEC SQL update author set name = :name where aid = :aid;
+	} else {
+		printf("INSERTING");
+		EXEC SQL insert into author (aid, name) values (:aid, :name);
+	}
+	printf(" author(%d#%s)\n", aid, name);
+}
+
+void process_authorurl(){
+	char *temp;
+	aid = atoi(strtok(NULL,"#"));
+	temp = strtok(NULL,")");
+	strcpy(url, temp);
+
+	printf("UPDATING authorurl(%d#%s)\n", aid, url);
+	EXEC SQL update author set url = :url where aid = :aid;
+}
+
+void process_book(){
+	char *temp, *authors;
+	process_publication();
+	authors = strtok(NULL,"#");
+	temp = strtok(NULL,"#");
+	strcpy(publisher, temp);
+	year = atoi(strtok(NULL,")"));
+
+	process_authorwrote(authors);
+
+	printf("\tINSERTING book(publisher:%s year:%d)\n", publisher, year);
+	EXEC SQL insert into book values (:pubid, :publisher, :year);
+}
+
+void process_journal(){
+	process_publication();
+	volume = atoi(strtok(NULL,"#"));
+	number = atoi(strtok(NULL,"#"));
+	year = atoi(strtok(NULL,")"));
+	
+	printf("\tINSERTING journal(volume:%d number:%d year:%d)\n", volume, number, year);
+	EXEC SQL insert into journal values (:pubid, :volume, :number, :year);
+}
+
+void process_proceedings(){
+	process_publication();
+	year = atoi(strtok(NULL,")"));
+
+	printf("\tINSERTING proceedings(year:%d)\n", year);
+	EXEC SQL insert into proceedings values (:pubid, :year);
+}
+
+void process_article(){
+	char *authors, *temp;
+
+	process_publication();
+	authors = strtok(NULL,"#");
+	temp = strtok(NULL,"#");
+	strcpy(appearsin, temp);
+	startpage = atoi(strtok(NULL,"#"));
+	endpage = atoi(strtok(NULL,"#"));
+
+	process_authorwrote(authors);
+	printf("\tINSERTING article(appearsin:%s startpage:%d endpage:%d)\n",
+		appearsin, startpage, endpage);
+	EXEC SQL insert into article
+		values (:pubid, :appearsin, :startpage, :endpage);
+}
+
+void process_all(){
+	size_t bufsize = BUF_SIZE;
+	char *args = malloc(BUF_SIZE);
+	char *token;
+
+	while(getline(&args, &bufsize, stdin)){
+		if (feof(stdin)) break;
+		puts("----------- NEXT COMMAND -----------");
+		token = strtok(args,"(");
+		if (!strcmp(token,"author")) process_author();
+		if (!strcmp(token,"authorurl")) process_authorurl();
+		if (!strcmp(token,"book")) process_book();
+		if (!strcmp(token,"journal")) process_journal();
+		if (!strcmp(token,"proceedings")) process_proceedings();
+		if (!strcmp(token,"article")) process_article();
+	}
+	free(args);
+}
+
+int main(){
+	EXEC SQL WHENEVER SQLERROR  GO TO error;
+	EXEC SQL CONNECT TO :db;
+
+	puts("CONNECTED");
+	process_all();
+	puts("DONE");
+
+	EXEC SQL COMMIT;
+	EXEC SQL CONNECT reset;
+
+	return 0;
 error:
-   check_error("My error",&sqlca);
-   EXEC SQL WHENEVER SQLERROR CONTINUE;
+	check_error("Error",&sqlca);
+	EXEC SQL WHENEVER SQLERROR CONTINUE;
 
-   EXEC SQL ROLLBACK;
-   EXEC SQL CONNECT reset;
-   exit(1);
+	EXEC SQL ROLLBACK;
+	EXEC SQL CONNECT reset;
+	return 1;
 }
