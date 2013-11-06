@@ -1,0 +1,51 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{../thm}
+\title{CS348 Assignment 2 Design}
+
+\begin{document}
+
+\maketitle
+
+Generally, my coding style is that everything are executed in ``chains" -- a starting function calling one after another.
+Also, the ``difficult" logic is done in SQL, i.e. sorting, so my program is about constructing a collection and then map each item to a specialized function.
+
+\begin{itemize}
+\item
+{\bf BibAuthor}
+How my {\tt BibAuthor} works is very simple. 
+\begin{enumerate}
+\item
+{\bf Generate a sorted collection for looping} First, it calls {\tt print\_pubid()} to generate the sorted list of {\tt pubid}, {\tt name}, and {\tt year}.
+Notice only the {\tt pubid} is used, and the rest are for sorting.
+
+The query works by selecting 3 sets: from books, articles, and publications that are refered by the articles.
+\item
+{\bf Iterate through each pubid} Then, the program calls {\tt print\_pub\_by\_id} to iterate through each {\tt pubid} while remain in order.
+This step identify type of the publication {\bf again} individual (second pass).
+The query is similar to the first one, except it does left joins on each child table (book, article, journal, proceedings) and then determine the type by picking non-null values -- this works because these table are mutually exclusive.
+\item
+{\bf Query again for detail of publication} The rest is just matching the publication type, and then query the {\tt pubid} with the type's specialized function (i.e. {\tt print\_*\_details}).
+This is the third pass.
+The queries consists only simple selects -- nothing exciting.
+\end{enumerate}
+\item
+{\bf BibMaint}
+My BibMaint is also very simple.
+The main point (and hope) is that everything runs in one transaction, so that I don't need to worry about update inconsistencies.
+
+Notice that the insert/update processes for the publication table is the same for all articles, journals, proceedings, and books.
+Similarly, the wrote table codes are shared between book and articles.
+
+There are 3 types of insert/update:
+\begin{itemize}
+\item
+{\bf Straight insert/update}: the author table -- it is just a simple insert/update statement.
+\item
+{\bf Publication}: whether a publication exists or not, {\tt process\_publication} will delete all details related to a {\tt pubid} (i.e. wrote, article, journal, proceedings, book).
+\item
+{\bf Insert the details}: the command determines which of {\tt process\_*} the program will be called upon, and the insert/update the database from parsed data.
+\end{itemize}
+\end{itemize}
+
+\end{document}

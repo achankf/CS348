@@ -27,28 +27,24 @@ const char db[6] = "CS348";
 EXEC SQL END DECLARE SECTION;
 
 void delete_publication_details(){
-	printf("\tDELETING %s on proceedings\n", pubid);
 	EXEC SQL delete from proceedings
 		where pubid in (
 			select pubid from publication
 			where pubid = :pubid
 		);
 
-	printf("\tDELETING %s on journal\n", pubid);
 	EXEC SQL delete from journal
 		where pubid in (
 			select pubid from publication
 			where pubid = :pubid
 		);
 
-	printf("\tDELETING %s on book\n", pubid);
 	EXEC SQL delete from book
 		where pubid in (
 			select pubid from publication
 			where pubid = :pubid
 		);
 
-	printf("\tDELETING %s on article\n", pubid);
 	EXEC SQL delete from article
 		where pubid in (
 			select pubid from publication
@@ -57,7 +53,6 @@ void delete_publication_details(){
 }
 
 void delete_wrote(){
-	printf("\tDELETING wrote for pubid %s\n", pubid); 
 	EXEC SQL delete from wrote
 		where pubid in (
 			select pubid from publication
@@ -79,30 +74,32 @@ void process_publication(){
 		select count(*) INTO :test from publication where pubid = :pubid;
 
 	if (test > 0){
-		printf("UPDATING");
 		EXEC SQL update publication set title = :title where pubid = :pubid;
 	} else {
-		printf("INSERTING");
 		EXEC SQL insert into publication values (:pubid, :title);
 	}
-	printf(" publication(%s#%s)\n", pubid, title);
 }
 
 void process_authorwrote(char *authors){
 	char *temp = authors;
 
-	printf("\tDELETING wrote for pubid %s\n", pubid); 
+	printf("Authors: ", pubid); 
 
 	for(aorder = 1; (temp = strtok(temp,";")) ; aorder++){
 		aid = atoi(temp);
 
-		printf("\tINSERTING author %d wrote %s (order: %d)\n",
-			aid, pubid, aorder);
 		EXEC SQL insert into wrote (aid,pubid,aorder)
 			values (:aid, :pubid, :aorder);
 
-		temp = NULL;
+		EXEC SQL select trim(name) INTO :name from author where aid = :aid;
+		printf("%s", name);
+
+		if ((temp = strtok(NULL,";")) == NULL){
+			break;
+		}
+		printf(", ");
 	}
+	puts("");
 }
 
 void process_author(){
@@ -115,13 +112,11 @@ void process_author(){
 		select count(*) INTO :test from author where aid = :aid;
 
 	if (test > 0){
-		printf("UPDATING");
 		EXEC SQL update author set name = :name where aid = :aid;
 	} else {
-		printf("INSERTING");
 		EXEC SQL insert into author (aid, name) values (:aid, :name);
 	}
-	printf(" author(%d#%s)\n", aid, name);
+	printf("Author ID:%d\nName:%s\n", aid, name);
 }
 
 void process_authorurl(){
@@ -130,7 +125,7 @@ void process_authorurl(){
 	temp = strtok(NULL,")");
 	strcpy(url, temp);
 
-	printf("UPDATING authorurl(%d#%s)\n", aid, url);
+	printf("Author ID:%d\nURL:%s\n", aid, url);
 	EXEC SQL update author set url = :url where aid = :aid;
 }
 
@@ -142,9 +137,10 @@ void process_book(){
 	strcpy(publisher, temp);
 	year = atoi(strtok(NULL,")"));
 
+	printf("Pubid: %s\n", pubid);
+	puts("Type: book");
 	process_authorwrote(authors);
-
-	printf("\tINSERTING book(publisher:%s year:%d)\n", publisher, year);
+	printf("Publisher: %s\nYear:%d\n", publisher, year);
 	EXEC SQL insert into book values (:pubid, :publisher, :year);
 }
 
@@ -154,7 +150,11 @@ void process_journal(){
 	number = atoi(strtok(NULL,"#"));
 	year = atoi(strtok(NULL,")"));
 	
-	printf("\tINSERTING journal(volume:%d number:%d year:%d)\n", volume, number, year);
+	printf("Pubid: %s\n", pubid);
+	puts("Type: journal");
+	puts("Authors:");
+	printf("Title: %s\n", title);
+	printf("Volume: %d\nNumber: %d\nYear:%d\n", volume, number, year);
 	EXEC SQL insert into journal values (:pubid, :volume, :number, :year);
 }
 
@@ -162,7 +162,11 @@ void process_proceedings(){
 	process_publication();
 	year = atoi(strtok(NULL,")"));
 
-	printf("\tINSERTING proceedings(year:%d)\n", year);
+	printf("Pubid: %s\n", pubid);
+	puts("Type: proceedings");
+	puts("Authors:");
+	printf("Title: %s\n", title);
+	printf("Year: %d\n", year);
 	EXEC SQL insert into proceedings values (:pubid, :year);
 }
 
@@ -176,9 +180,11 @@ void process_article(){
 	startpage = atoi(strtok(NULL,"#"));
 	endpage = atoi(strtok(NULL,"#"));
 
+	printf("Pubid: %s\n", pubid);
+	puts("Type: article");
 	process_authorwrote(authors);
-	printf("\tINSERTING article(appearsin:%s startpage:%d endpage:%d)\n",
-		appearsin, startpage, endpage);
+	printf("Title: %s\n", title);
+	printf("In:%s\nPages: %d-%d\n", appearsin, startpage, endpage);
 	EXEC SQL insert into article
 		values (:pubid, :appearsin, :startpage, :endpage);
 }
@@ -208,7 +214,7 @@ int main(){
 
 	puts("CONNECTED");
 	process_all();
-	puts("DONE");
+	puts("----------- DONE -----------");
 
 	EXEC SQL COMMIT;
 	EXEC SQL CONNECT reset;
