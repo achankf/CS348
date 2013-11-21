@@ -53,62 +53,63 @@ create table lens( \
 
 drop table camera
 create table camera( \
-	manufacturer varchar(100) not null, \
-	model_number integer not null, \
+	cam_manufacturer varchar(100) not null, \
+	cam_model_number integer not null, \
 	sensor_size double not null, \
 	pixel_number integer not null, \
-	primary key (manufacturer, model_number), \
-	foreign key (manufacturer, model_number) references product(manufacturer, model_number) \
+	primary key (cam_manufacturer, cam_model_number), \
+	foreign key (cam_manufacturer, cam_model_number) references product(manufacturer, model_number) \
 )
 
 drop table camera_normal_feature
 create table camera_normal_feature( \
-	manufacturer varchar(100) not null, \
-	model_number integer not null, \
+	cam_manufacturer varchar(100) not null, \
+	cam_model_number integer not null, \
 	feature_number integer not null, \
 	check (feature_number = 2), -- ONLY #2 "FOR NOW" \
-	primary key (manufacturer, model_number, feature_number), \
-	foreign key (manufacturer, model_number) references camera(manufacturer, model_number) \
+	primary key (cam_manufacturer, cam_model_number, feature_number), \
+	foreign key (cam_manufacturer, cam_model_number) references camera(manufacturer, model_number) \
 ) 
 
 drop table camera_distinct_feature
 create table camera_distinct_feature( \
-	manufacturer varchar(100) not null, \
-	model_number integer not null, \
+	cam_manufacturer varchar(100) not null, \
+	cam_model_number integer not null, \
 	feature_number integer not null, \
 	check (feature_number >= 3 and feature_number <= 5), -- one of {3,4,5} \
-	primary key (manufacturer, model_number), -- ONE SUCH FEATURE PER CAMERA \
-	foreign key (manufacturer, model_number) references camera(manufacturer, model_number) \
+	primary key (cam_manufacturer, cam_model_number), -- ONE SUCH FEATURE PER CAMERA \
+	foreign key (cam_manufacturer, cam_model_number) references camera(manufacturer, model_number) \
 ) 
 
 drop table lens_replaceable_camera
 create table lens_replaceable_camera( \
-	manufacturer varchar(100) not null, \
-	model_number integer not null, \
-	primary key (manufacturer, model_number), \
-	foreign key (manufacturer, model_number) references camera(manufacturer, model_number) \
+	cam_manufacturer varchar(100) not null, \
+	cam_model_number integer not null, \
+	primary key (cam_manufacturer, cam_model_number), \
+	foreign key (cam_manufacturer, cam_model_number) references camera(manufacturer, model_number) \
 )
 
 drop table lens_repl_cam_has_lens
 create table lens_repl_cam_has_lens( \
-	manufacturer varchar(100) not null, \
-	model_number integer not null, \
+	cam_manufacturer varchar(100) not null, \
+	cam_model_number integer not null, \
 	lens_manufacturer varchar(100) not null, \
 	lens_model_number integer not null, \
-	primary key (manufacturer, model_number, lens_manufacturer, lens_model_number), \
-	foreign key (manufacturer, model_number) references lens_replaceable_camera(manufacturer, model_number) \
+	primary key (cam_manufacturer, cam_model_number, lens_manufacturer, lens_model_number), \
+	foreign key (lens_manufacturer, lens_model_number) references lens(manufacturer, model_number) \
+	foreign key (cam_manufacturer, cam_model_number) references lens_replaceable_camera(manufacturer, model_number) \
 )
 
 drop table lens_non_replaceable_camera
 create table lens_non_replaceable_camera( \
-	manufacturer varchar(100) not null, \
-	model_number integer not null, \
+	cam_manufacturer varchar(100) not null, \
+	cam_model_number integer not null, \
 	lens_manufacturer varchar(100) not null, -- ONLY HAVE ONE LENS \
 	lens_model_number integer not null, \
 	aperture_range double not null, \
 	min_focal_range double not null, \
 	max_focal_range double not null, \
-	primary key (manufacturer, model_number), \
-	foreign key (manufacturer, model_number) references camera(manufacturer, model_number), \
-	foreign key (lens_manufacturer, lens_model_number) references camera(manufacturer, model_number) \
+	primary key (cam_manufacturer, cam_model_number), \
+	foreign key (cam_manufacturer, cam_model_number) references camera(manufacturer, model_number), \
+	foreign key (lens_manufacturer, lens_model_number) references lens(manufacturer, model_number) \
 )

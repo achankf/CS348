@@ -1,0 +1,16 @@
+{\bf Exercise 19.4}
+The following query returns 1 iff the FD $A \rightarrow B$ holds.
+\begin{lstlisting}
+select count(*) from (
+	select a, count(distinct b)
+ 		from a group by a)
+
+create assertion ab -- second part: assertion
+check ( 1 = (select count(*) from (
+    select a, count(distinct b)
+      from a group by a)))
+\end{lstlisting}
+{\bf Exercise 19.7}
+\begin{enumerate}[1.]
+\item
+\end{enumerate}

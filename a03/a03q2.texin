@@ -1,5 +1,15 @@
-\begin{enumerate}
+{\bf Unusual translation decision}
+\begin{itemize}
 \item
-Not enforced ER translation:
-\end{enumerate}
+For lens-non-replaceable cameras, instead of making a separate table for the relation ``LNL," I merged lens-related information to the camera, since the relation is one-to-one.
+\item
+Instead of making 2 tables for each domestic and foreign customers, I add a column to the base customer table called {\tt domestic\_or\_foreign}, which accepts either the string ``domestic" or ``foreign."
+\end{itemize}
+{\bf Not enforced ER translation}
+\begin{itemize}
+\item
+For readibility, I renamed {\tt feature2} to {\tt camera\_normal\_feature} and {\tt feature345} to {\tt camera\_distinct\_feature}.
+\item
+I ignored the prime lens requirement, because the prime lens can be simulated with a ``normal" lens that has the same max/min focal length.
+\end{itemize}
 \lstinputlisting{createdb.sql_clean}

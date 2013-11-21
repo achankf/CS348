@@ -10,7 +10,9 @@ $(OUT):$(IN) $(INCLUDE) $(CLEANSQL)
 	pdflatex $<
 
 %.sql_clean : %.sql
-	grep -ve drop -e connect $< > $@
+	grep -ve drop -e connect $< | \
+	sed "s/--.*$$//g" | \
+	sed 's:\\::g' > $@
 
 .phony: clean
 clean:
