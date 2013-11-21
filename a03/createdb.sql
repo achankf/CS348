@@ -112,5 +112,3 @@ create table lens_non_replaceable_camera( \
 	foreign key (manufacturer, model_number) references camera(manufacturer, model_number), \
 	foreign key (lens_manufacturer, lens_model_number) references camera(manufacturer, model_number) \
 )
-
-insert into customer values (0, 'Alfred', 'a77chan@uwaterloo.ca', 'abc street', 'domestic')
