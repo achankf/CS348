@@ -1,0 +1,45 @@
+\usepackage{amsthm}
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+\newtheorem{thm}{Theorem}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{claim}[thm]{Claim}
+\newtheorem{coro}[thm]{Corollary}
+\newtheorem{magic}[thm]{Magic}
+\newtheorem{defn}[thm]{Definition}
+\newcommand{\done}[0]{\hfill\ensuremath{\blacksquare}}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{ifthen,enumerate}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{pdfpages}
+\usepackage{xcolor}
+\usepackage{bm}
+
+\definecolor{comment}{rgb}{0.12, 0.38, 0.18}
+\usepackage[left=2cm,top=2cm,right=2cm]{geometry}
+\author{Alfred Chan -- 20392255}
+
+\lstnewenvironment{algorithm}
+{
+\lstset{
+  language=sql,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{comment},
+  stringstyle=\ttfamily\color{red!50!brown},
+  numbers=left,
+  showspaces=false,
+  showstringspaces=false,
+  stepnumber=1,
+  basicstyle=\ttfamily,
+  morekeywords={let, each, or ,and, then, cons, push, into, from, to, by, end, do, done, be, in, whenever, set, is, of, not, otherwise, as, on, create, alias, are, taking, that, mark, add, remove, with, output, copy, function, such, find, tokenize, append, sort},
+  frame=single,
+  breaklines=true,
+  lineskip={-1.5pt},
+  tabsize=2,
+	escapeinside={(*@}{@*)}
+}
+}{}
