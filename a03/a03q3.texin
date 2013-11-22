@@ -13,4 +13,23 @@ check ( 1 = (select count(*) from (
 {\bf Exercise 19.7}
 \begin{enumerate}[1.]
 \item
+Candidate keys: B\\
+Normal Form: 1NF -- each left-hand-side is not a superkey, so not 3NF\\
+BCNF decomposition: $\{B,C\}, \{C,A\}, \{C,D\}$
+\item
+Candidate keys: BD\\
+Normal Form: 1NF -- each left-hand-side is not a superkey, so not 3NF\\
+BCNF decomposition: $\{B,D\}, \{D,A\}, \{B,C\}$
+\item
+Candidate keys: ABC\\
+Normal Form: 3NF -- not BNCF because $D$ is not a super key, but the candidate key contains it\\
+BCNF decomposition: No BCNF decomposition because otherwise we get $\{B,C,D\}, \{D,A\}$, but none of which can recover the function dependency $ABC \rightarrow D$ without a join.
+\item
+Candidate keys: A\\
+Normal Form: 1NF -- BC is not a super key, and is not contained by A\\
+BCNF decomposition: \{A,B,C\}, \{B,C,D\}
+\item
+Candidate keys: AB, CD \\
+Normal Form: 3NF -- both C and D are contained by AB, but they are not super keys\\
+BCNF decomposition: No BCNF decomposition because otherwise we get \{C,D\}, \{C,A\}, \{D,B\}, but none of which can recover the functional dependency $AB \rightarrow C$ without an extra join.
 \end{enumerate}
