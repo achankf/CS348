@@ -37,28 +37,28 @@ create table lens( \
 
 drop table camera
 create table camera( \
-	cam_model_number integer not null primary key references product, \
+	model_number integer not null primary key references product, \
 	sensor_size double not null, \
 	pixel_number integer not null \
 )
 
 drop table camera_normal_feature
 create table camera_normal_feature( \
-	cam_model_number integer not null primary key references camera, \
+	model_number integer not null primary key references camera, \
 	feature_number integer not null, \
 	check (feature_number = 2) -- ONLY #2 "FOR NOW" \
 ) 
 
 drop table camera_distinct_feature
 create table camera_distinct_feature( \
-	cam_model_number integer not null primary key references camera, \
+	model_number integer not null primary key references camera, \
 	feature_number integer not null, \
 	check (feature_number >= 3 and feature_number <= 5) -- one of {3,4,5} \
 ) 
 
 drop table lens_replaceable_camera
 create table lens_replaceable_camera( \
-	cam_model_number integer not null primary key references camera \
+	model_number integer not null primary key references camera \
 )
 
 drop table lens_repl_cam_has_lens

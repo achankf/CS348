@@ -1,2 +1,4 @@
 See the attached diagram.
+Notice that {\tt purchase\_order} is many-to-many.
 One special note: for the features, I excluded feature 1 because I think it is simpler to have 2 separate entities ({\tt len\_replaceable\_camera} and {\tt lens\_non\_replaceable\_camera} to deal with the candinality constraints.
+The idea that camera and lens are inherited from {\tt product} because I assume customer may want to replace broken lens with new ones.

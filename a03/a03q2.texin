@@ -8,11 +8,8 @@ Instead of making 2 tables for each domestic and foreign customers, I add a colu
 {\bf Not enforced ER translation}
 \begin{itemize}
 \item
-Notice that {\tt purchase\_order} does not have a primary key constrain.
-This is because a customer can make as many orders as possible on the same camera/lens.
-\item
 The covering inheritance constrains between camera and lens, and between camera with/out the ability to replace lens are not honoured.
-This assumes the application programmer knows what he/she is doing -- if the application tries to enter a product is both a camera and a lens, then that programmer should get fired.
+This assumes the application programmer knows what he/she is doing -- if the application tries to enter a product is both a camera and a lens, but is not a lens-non-replaceable camera, then that programmer should get fired.
 \item
 For readibility, I renamed {\tt feature2} to {\tt camera\_normal\_feature} and {\tt feature345} to {\tt camera\_distinct\_feature}.
 \item
